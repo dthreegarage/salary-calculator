@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Salary Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="number"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            width: 80px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-blue { background: #007bff; color: white; }
+        .btn-blue:hover { background: #0056b3; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-green:hover { background: #1e7e34; }
+        .btn-red { background: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-red:hover { background: #c82333; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .input-small {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .advance-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        
+        .advance-item {
+            background: #ffe6e6;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .deduction-detail {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .final-salary {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .summary {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .rules {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Employee Salary Calculator</h1>
+            <div class="controls">
+                <label>Working Days:</label>
+                <input type="number" id="workingDays" value="30" min="1" max="31" onchange="calculateAll()">
+                <button class="btn btn-green" onclick="exportCSV()">📊 Export CSV</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Base Salary</th>
+                    <th>Present Days</th>
+                    <th>Late Days</th>
+                    <th>Leave Days</th>
+                    <th>Advances</th>
+                    <th>Deductions</th>
+                    <th>Final Salary</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <h2>Monthly Summary</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Summary will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="rules">
+            <h3>Calculation Rules:</h3>
+            <ul>
+                <li><strong>Late Days:</strong> 50% salary deduction for each late day</li>
+                <li><strong>Leave Days:</strong> 100% salary deduction for each leave day</li>
+                <li><strong>Advances:</strong> Full advance amount deducted from salary</li>
+                <li><strong>Daily Rate:</strong> Base Salary ÷ Working Days</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Employee data
+        var employees = [
+            {id: 1, name: 'Ajit', salary: 18000},
+            {id: 2, name: 'Sunil', salary: 12000},
+            {id: 3, name: 'Om Prakash', salary: 12000},
+            {id: 4, name: 'Sanjeev', salary: 12000},
+            {id: 5, name: 'Aman', salary: 18000}
+        ];
+
+        // Data storage
+        var attendanceData = {};
+        var advanceData = {};
+
+        // Initialize data
+        function initData() {
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                attendanceData[emp.id] = {present: 30, late: 0, leave: 0};
+                advanceData[emp.id] = [];
+            }
+            renderTable();
+            calculateSummary();
+        }
+
+        // Update attendance
+        function updateAttendance(empId, field, value) {
+            attendanceData[empId][field] = parseInt(value) || 0;
+            calculateAll();
+        }
+
+        // Add advance
+        function addAdvance(empId) {
+            var amount = prompt('Enter advance amount (₹):');
+            var date = prompt('Enter date (DD/MM/YYYY):');
+            
+            if (amount && date && !isNaN(amount)) {
+                advanceData[empId].push({
+                    id: Date.now(),
+                    amount: parseFloat(amount),
+                    date: date
+                });
+                calculateAll();
+            }
+        }
+
+        // Remove advance
+        function removeAdvance(empId, advId) {
+            advanceData[empId] = advanceData[empId].filter(function(adv) {
+                return adv.id != advId;
+            });
+            calculateAll();
+        }
+
+        // Calculate salary for one employee
+        function calculateSalary(emp) {
+            var workingDays = parseInt(document.getElementById('workingDays').value) || 30;
+            var attendance = attendanceData[emp.id];
+            var advances = advanceData[emp.id];
+            
+            var dailyRate = emp.salary / workingDays;
+            var lateDeduction = attendance.late * (dailyRate * 0.5);
+            var leaveDeduction = attendance.leave * dailyRate;
+            var totalAdvances = 0;
+            
+            for (var i = 0; i < advances.length; i++) {
+                totalAdvances += advances[i].amount;
+            }
+            
+            var totalDeductions = lateDeduction + leaveDeduction + totalAdvances;
+            var finalSalary = Math.max(0, emp.salary - totalDeductions);
+            
+            return {
+                dailyRate: dailyRate.toFixed(2),
+                lateDeduction: lateDeduction.toFixed(2),
+                leaveDeduction: leaveDeduction.toFixed(2),
+                totalAdvances: totalAdvances.toFixed(2),
+                totalDeductions: totalDeductions.toFixed(2),
+                finalSalary: finalSalary.toFixed(2)
+            };
+        }
+
+        // Render table
+        function renderTable() {
+            var tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var attendance = attendanceData[emp.id];
+                var calc = calculateSalary(emp);
+                var advances = advanceData[emp.id];
+
+                var row = document.createElement('tr');
+                
+                // Build advances HTML
+                var advancesHtml = '<button class="btn btn-blue" onclick="addAdvance(' + emp.id + ')">+ Add Advance</button><div class="advance-list">';
+                for (var j = 0; j < advances.length; j++) {
+                    var adv = advances[j];
+                    advancesHtml += '<div class="advance-item">' +
+                        '<div><strong>₹' + adv.amount + '</strong><br>' + adv.date + '</div>' +
+                        '<button class="btn btn-red" onclick="removeAdvance(' + emp.id + ',' + adv.id + ')">×</button></div>';
+                }
+                advancesHtml += '</div>';
+
+                row.innerHTML = 
+                    '<td><strong>' + emp.name + '</strong></td>' +
+                    '<td>₹' + emp.salary.toLocaleString() + '</td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.present + '" onchange="updateAttendance(' + emp.id + ',\'present\',this.value)"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.late + '" onchange="updateAttendance(' + emp.id + ',\'late\',this.value)"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.leave + '" onchange="updateAttendance(' + emp.id + ',\'leave\',this.value)"></td>' +
+                    '<td>' + advancesHtml + '</td>' +
+                    '<td class="deduction-detail">' +
+                        'Late: <span style="color:red">-₹' + calc.lateDeduction + '</span><br>' +
+                        'Leave: <span style="color:red">-₹' + calc.leaveDeduction + '</span><br>' +
+                        'Advance: <span style="color:red">-₹' + calc.totalAdvances + '</span><br>' +
+                        '<strong>Total: <span style="color:red">-₹' + calc.totalDeductions + '</span></strong>' +
+                    '</td>' +
+                    '<td class="final-salary">₹' + calc.finalSalary + '<br><small>Daily: ₹' + calc.dailyRate + '</small></td>';
+
+                tbody.appendChild(row);
+            }
+        }
+
+        // Calculate summary
+        function calculateSummary() {
+            var totalBase = 0;
+            var totalDeductions = 0;
+            var totalFinal = 0;
+
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var calc = calculateSalary(emp);
+                totalBase += emp.salary;
+                totalDeductions += parseFloat(calc.totalDeductions);
+                totalFinal += parseFloat(calc.finalSalary);
+            }
+
+            document.getElementById('summaryGrid').innerHTML = 
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#007bff">₹' + totalBase.toLocaleString() + '</div>' +
+                    '<div>Total Base Salary</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#dc3545">₹' + Math.round(totalDeductions).toLocaleString() + '</div>' +
+                    '<div>Total Deductions</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#28a745">₹' + Math.round(totalFinal).toLocaleString() + '</div>' +
+                    '<div>Total Final Salary</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#6f42c1">' + employees.length + '</div>' +
+                    '<div>Total Employees</div>' +
+                '</div>';
+        }
+
+        // Calculate all
+        function calculateAll() {
+            renderTable();
+            calculateSummary();
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            var csv = 'Employee Name,Base Salary,Present Days,Late Days,Leave Days,Late Deduction,Leave Deduction,Total Advances,Total Deductions,Final Salary\n';
+            
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var attendance = attendanceData[emp.id];
+                var calc = calculateSalary(emp);
+                
+                csv += emp.name + ',' + 
+                       emp.salary + ',' + 
+                       attendance.present + ',' + 
+                       attendance.late + ',' + 
+                       attendance.leave + ',' + 
+                       calc.lateDeduction + ',' + 
+                       calc.leaveDeduction + ',' + 
+                       calc.totalAdvances + ',' + 
+                       calc.totalDeductions + ',' + 
+                       calc.finalSalary + '\n';
+            }
+            
+            var blob = new Blob([csv], {type: 'text/csv'});
+            var url = window.URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'salary_report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            initData();
+        };
+    </script>
+</body>
+</html>
