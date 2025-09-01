@@ -164,17 +164,6 @@
             font-size: 13px;
         }
         
-        .salary-input {
-            max-width: 120px;
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .deduction-input {
-            max-width: 100px;
-            text-align: center;
-        }
-        
         button {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -228,7 +217,6 @@
         .summary-card:nth-child(3) { border-left-color: #f56565; }
         .summary-card:nth-child(4) { border-left-color: #48bb78; }
         .summary-card:nth-child(5) { border-left-color: #ed8936; }
-        .summary-card:nth-child(6) { border-left-color: #9f7aea; }
         
         .summary-card h3 {
             color: #666;
@@ -383,12 +371,12 @@
                         <th>Employee</th>
                         <th>Basic Salary</th>
                         <th>Working Days</th>
+                        <th>Present</th>
                         <th>Late</th>
                         <th>Absent</th>
                         <th>Late Deduction</th>
                         <th>Absent Deduction</th>
                         <th>Total Advances</th>
-                        <th>Extra Deduction</th>
                         <th>Net Salary</th>
                     </tr>
                 </thead>
@@ -417,17 +405,13 @@
                     <h3>Absence Penalties</h3>
                     <div class="amount" id="totalAbsent">₹0</div>
                 </div>
-                <div class="summary-card">
-                    <h3>Extra Deductions</h3>
-                    <div class="amount" id="totalExtra">₹0</div>
-                </div>
             </div>
         </div>
     </div>
     
     <script>
         // Employee data
-        let employees = [
+        const employees = [
             { id: 1, name: "Ajit", salary: 18000 },
             { id: 2, name: "Sunil", salary: 12000 },
             { id: 3, name: "Om Prakash", salary: 12000 },
@@ -438,58 +422,32 @@
         // Data storage
         let attendanceData = {};
         let advancesData = {};
-        let extraDeductionsData = {};
         let currentMonth = new Date().toISOString().slice(0, 7);
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            loadFromData();
+            loadFromLocalStorage();
             document.getElementById('currentMonth').value = currentMonth;
             initializeAttendance();
             renderAdvances();
             calculateSummary();
         });
         
-        function loadFromData() {
+        function loadFromLocalStorage() {
             const saved = localStorage.getItem('salaryData');
             if (saved) {
                 const data = JSON.parse(saved);
                 attendanceData = data.attendance || {};
                 advancesData = data.advances || {};
-                extraDeductionsData = data.extraDeductions || {};
-                if (data.employees) {
-                    employees = data.employees;
-                }
             }
         }
         
-        function saveToData() {
+        function saveToLocalStorage() {
             const data = {
                 attendance: attendanceData,
-                advances: advancesData,
-                extraDeductions: extraDeductionsData,
-                employees: employees
+                advances: advancesData
             };
             localStorage.setItem('salaryData', JSON.stringify(data));
-        }
-        
-        function updateEmployeeSalary(empId, newSalary) {
-            const emp = employees.find(e => e.id === empId);
-            if (emp) {
-                emp.salary = parseFloat(newSalary) || 0;
-                saveToData();
-                initializeAttendance();
-                calculateSummary();
-            }
-        }
-        
-        function updateExtraDeduction(empId, amount) {
-            if (!extraDeductionsData[currentMonth]) {
-                extraDeductionsData[currentMonth] = {};
-            }
-            extraDeductionsData[currentMonth][empId] = parseFloat(amount) || 0;
-            saveToData();
-            calculateSummary();
         }
         
         function changeMonth() {
@@ -530,11 +488,7 @@
                 
                 let cols = `
                     <td><strong>${emp.name}</strong></td>
-                    <td>
-                        <input type="number" class="salary-input" value="${emp.salary}" 
-                               onchange="updateEmployeeSalary(${emp.id}, this.value)"
-                               min="0" step="100">
-                    </td>
+                    <td>₹${emp.salary.toLocaleString()}</td>
                     <td>₹${dailyRate.toLocaleString()}</td>
                 `;
                 
@@ -591,7 +545,7 @@
             // Update visual style
             element.className = `attendance-select ${status}`;
             
-            saveToData();
+            saveToLocalStorage();
             calculateSummary();
         }
         
@@ -627,7 +581,7 @@
                 reason: reason
             });
             
-            saveToData();
+            saveToLocalStorage();
             renderAdvances();
             calculateSummary();
         }
@@ -635,7 +589,7 @@
         function deleteAdvance(id) {
             if (confirm("Are you sure you want to delete this advance?")) {
                 advancesData[currentMonth] = advancesData[currentMonth].filter(a => a.id !== id);
-                saveToData();
+                saveToLocalStorage();
                 renderAdvances();
                 calculateSummary();
             }
@@ -674,11 +628,9 @@
             let totalAdvancesSum = 0;
             let totalLateDeductions = 0;
             let totalAbsentDeductions = 0;
-            let totalExtraDeductions = 0;
             
             const daysInMonth = getDaysInMonth(currentMonth);
             const monthAdvances = advancesData[currentMonth] || [];
-            const monthExtraDeductions = extraDeductionsData[currentMonth] || {};
             
             employees.forEach(emp => {
                 const dailyRate = Math.round(emp.salary / 30);
@@ -711,32 +663,25 @@
                     .filter(a => a.empId === emp.id)
                     .reduce((sum, a) => sum + a.amount, 0);
                 
-                const extraDeduction = monthExtraDeductions[emp.id] || 0;
-                
-                const netSalary = emp.salary - lateDeduction - absentDeduction - empAdvances - extraDeduction;
+                const netSalary = emp.salary - lateDeduction - absentDeduction - empAdvances;
                 
                 totalPayroll += netSalary;
-                totalDeductions += (lateDeduction + absentDeduction + empAdvances + extraDeduction);
+                totalDeductions += (lateDeduction + absentDeduction + empAdvances);
                 totalAdvancesSum += empAdvances;
                 totalLateDeductions += lateDeduction;
                 totalAbsentDeductions += absentDeduction;
-                totalExtraDeductions += extraDeduction;
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${emp.name}</strong></td>
                     <td>₹${emp.salary.toLocaleString()}</td>
                     <td>${workingDays}</td>
+                    <td><span class="status-badge present">${presentDays}</span></td>
                     <td><span class="status-badge late">${lateDays}</span></td>
                     <td><span class="status-badge absent">${absentDays}</span></td>
                     <td>₹${lateDeduction.toLocaleString()}</td>
                     <td>₹${absentDeduction.toLocaleString()}</td>
                     <td>₹${empAdvances.toLocaleString()}</td>
-                    <td>
-                        <input type="number" class="deduction-input" value="${extraDeduction}" 
-                               onchange="updateExtraDeduction(${emp.id}, this.value)"
-                               min="0" step="10" placeholder="0">
-                    </td>
                     <td style="font-weight: bold; color: ${netSalary < 0 ? '#f56565' : '#48bb78'}">
                         ₹${netSalary.toLocaleString()}
                     </td>
@@ -750,7 +695,6 @@
             document.getElementById('totalAdvances').textContent = `₹${totalAdvancesSum.toLocaleString()}`;
             document.getElementById('totalLate').textContent = `₹${totalLateDeductions.toLocaleString()}`;
             document.getElementById('totalAbsent').textContent = `₹${totalAbsentDeductions.toLocaleString()}`;
-            document.getElementById('totalExtra').textContent = `₹${totalExtraDeductions.toLocaleString()}`;
         }
         
         function showTab(tabName) {
@@ -780,7 +724,6 @@
             const data = {
                 attendance: attendanceData,
                 advances: advancesData,
-                extraDeductions: extraDeductionsData,
                 employees: employees,
                 exportDate: new Date().toISOString()
             };
@@ -808,10 +751,8 @@
                     const data = JSON.parse(e.target.result);
                     if (data.attendance) attendanceData = data.attendance;
                     if (data.advances) advancesData = data.advances;
-                    if (data.extraDeductions) extraDeductionsData = data.extraDeductions;
-                    if (data.employees) employees = data.employees;
                     
-                    saveToData();
+                    saveToLocalStorage();
                     initializeAttendance();
                     renderAdvances();
                     calculateSummary();
