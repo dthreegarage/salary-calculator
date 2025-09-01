@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Salary Management System</title>
+    <title>Employee Salary Calculator</title>
     <style>
         * {
             margin: 0;
@@ -12,758 +12,412 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
             padding: 20px;
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
             padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
         }
         
         h1 {
             color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 28px;
         }
         
-        .month-selector {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .month-selector select {
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 2px solid #667eea;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .month-selector select:hover {
-            border-color: #764ba2;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-        
-        .tabs {
+        .controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
+            gap: 15px;
+            align-items: center;
         }
         
-        .tab {
-            padding: 12px 24px;
-            background: transparent;
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="number"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            width: 80px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.3s ease;
-            position: relative;
+            font-weight: bold;
+            transition: all 0.3s;
         }
         
-        .tab.active {
-            color: #667eea;
-        }
-        
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 3px 3px 0 0;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-blue:hover { background: #0056b3; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-green:hover { background: #1e7e34; }
+        .btn-red { background: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-red:hover { background: #c82333; }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
         }
         
         th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px 10px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
         }
         
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
         }
         
         tr:hover {
-            background: #f8f9fa;
+            background-color: #e9ecef;
         }
         
-        tr:last-child td {
-            border-bottom: none;
-        }
-        
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select {
-            width: 100%;
-            padding: 8px;
+        .input-small {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            border-radius: 3px;
         }
         
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .advance-list {
+            max-height: 120px;
+            overflow-y: auto;
         }
         
-        .attendance-select {
-            padding: 6px;
-            font-size: 13px;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .delete-btn {
-            background: linear-gradient(135deg, #f56565, #e53e3e);
-            padding: 6px 12px;
+        .advance-item {
+            background: #ffe6e6;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 12px;
+        }
+        
+        .deduction-detail {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .final-salary {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .summary {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
         }
         
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
         }
         
         .summary-card {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid;
-            transition: all 0.3s ease;
-        }
-        
-        .summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        .summary-card:nth-child(1) { border-left-color: #667eea; }
-        .summary-card:nth-child(2) { border-left-color: #764ba2; }
-        .summary-card:nth-child(3) { border-left-color: #f56565; }
-        .summary-card:nth-child(4) { border-left-color: #48bb78; }
-        .summary-card:nth-child(5) { border-left-color: #ed8936; }
-        
-        .summary-card h3 {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .summary-card .amount {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .attendance-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            max-width: 100%;
-            overflow-x: auto;
-        }
-        
-        .day-header {
-            font-weight: bold;
-            font-size: 12px;
+            padding: 15px;
+            border-radius: 8px;
             text-align: center;
-            padding: 5px;
-            background: #f0f0f0;
-            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 1.8em;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-            
-            table {
-                font-size: 12px;
-            }
-            
-            th, td {
-                padding: 8px 5px;
-            }
-            
-            .attendance-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
         
-        .present { background: #48bb78; color: white; }
-        .absent { background: #f56565; color: white; }
-        .late { background: #ed8936; color: white; }
-        .holiday { background: #9f7aea; color: white; }
-        
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            display: inline-block;
+        .rules {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Employee Salary Management System</h1>
-        
-        <div class="month-selector">
-            <label for="currentMonth">Select Month: </label>
-            <select id="currentMonth" onchange="changeMonth()">
-                <option value="2024-01">January 2024</option>
-                <option value="2024-02">February 2024</option>
-                <option value="2024-03">March 2024</option>
-                <option value="2024-04">April 2024</option>
-                <option value="2024-05">May 2024</option>
-                <option value="2024-06">June 2024</option>
-                <option value="2024-07">July 2024</option>
-                <option value="2024-08">August 2024</option>
-                <option value="2024-09">September 2024</option>
-                <option value="2024-10">October 2024</option>
-                <option value="2024-11">November 2024</option>
-                <option value="2024-12">December 2024</option>
-            </select>
-        </div>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('attendance')">Attendance</button>
-            <button class="tab" onclick="showTab('advances')">Advances</button>
-            <button class="tab" onclick="showTab('summary')">Salary Summary</button>
-        </div>
-        
-        <div id="attendance" class="tab-content active">
-            <h2>Daily Attendance</h2>
-            <table id="attendanceTable">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Basic Salary</th>
-                        <th>Daily Rate</th>
-                    </tr>
-                </thead>
-                <tbody id="attendanceBody">
-                </tbody>
-            </table>
-        </div>
-        
-        <div id="advances" class="tab-content">
-            <h2>Advance Payments</h2>
-            <div class="actions">
-                <button onclick="addAdvance()">Add Advance</button>
-                <button onclick="exportData()">Export Data</button>
-                <button onclick="importData()">Import Data</button>
-                <input type="file" id="importFile" style="display: none;" accept=".json" onchange="handleImport(event)">
+        <div class="header">
+            <h1>Employee Salary Calculator</h1>
+            <div class="controls">
+                <label>Working Days:</label>
+                <input type="number" id="workingDays" value="30" min="1" max="31" onchange="calculateAll()">
+                <button class="btn btn-green" onclick="exportCSV()">📊 Export CSV</button>
             </div>
-            <table id="advancesTable">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Reason</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="advancesBody">
-                </tbody>
-            </table>
         </div>
-        
-        <div id="summary" class="tab-content">
-            <h2>Monthly Salary Summary</h2>
-            <table id="summaryTable">
-                <thead>
-                    <tr>
-                        <th>Employee</th>
-                        <th>Basic Salary</th>
-                        <th>Working Days</th>
-                        <th>Present</th>
-                        <th>Late</th>
-                        <th>Absent</th>
-                        <th>Late Deduction</th>
-                        <th>Absent Deduction</th>
-                        <th>Total Advances</th>
-                        <th>Net Salary</th>
-                    </tr>
-                </thead>
-                <tbody id="summaryBody">
-                </tbody>
-            </table>
-            
-            <div class="summary-grid">
-                <div class="summary-card">
-                    <h3>Total Payroll</h3>
-                    <div class="amount" id="totalPayroll">₹0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Total Deductions</h3>
-                    <div class="amount" id="totalDeductions">₹0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Total Advances</h3>
-                    <div class="amount" id="totalAdvances">₹0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Late Penalties</h3>
-                    <div class="amount" id="totalLate">₹0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Absence Penalties</h3>
-                    <div class="amount" id="totalAbsent">₹0</div>
-                </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Base Salary</th>
+                    <th>Present Days</th>
+                    <th>Late Days</th>
+                    <th>Leave Days</th>
+                    <th>Advances</th>
+                    <th>Deductions</th>
+                    <th>Final Salary</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <h2>Monthly Summary</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Summary will be populated by JavaScript -->
             </div>
+        </div>
+
+        <div class="rules">
+            <h3>Calculation Rules:</h3>
+            <ul>
+                <li><strong>Late Days:</strong> 50% salary deduction for each late day</li>
+                <li><strong>Leave Days:</strong> 100% salary deduction for each leave day</li>
+                <li><strong>Advances:</strong> Full advance amount deducted from salary</li>
+                <li><strong>Daily Rate:</strong> Base Salary ÷ Working Days</li>
+            </ul>
         </div>
     </div>
-    
+
     <script>
         // Employee data
-        const employees = [
-            { id: 1, name: "Ajit", salary: 18000 },
-            { id: 2, name: "Sunil", salary: 12000 },
-            { id: 3, name: "Om Prakash", salary: 12000 },
-            { id: 4, name: "Sanjeev", salary: 12000 },
-            { id: 5, name: "Aman", salary: 18000 }
+        var employees = [
+            {id: 1, name: 'Ajit', salary: 18000},
+            {id: 2, name: 'Sunil', salary: 12000},
+            {id: 3, name: 'Om Prakash', salary: 12000},
+            {id: 4, name: 'Sanjeev', salary: 12000},
+            {id: 5, name: 'Aman', salary: 18000}
         ];
-        
+
         // Data storage
-        let attendanceData = {};
-        let advancesData = {};
-        let currentMonth = new Date().toISOString().slice(0, 7);
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadFromLocalStorage();
-            document.getElementById('currentMonth').value = currentMonth;
-            initializeAttendance();
-            renderAdvances();
-            calculateSummary();
-        });
-        
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('salaryData');
-            if (saved) {
-                const data = JSON.parse(saved);
-                attendanceData = data.attendance || {};
-                advancesData = data.advances || {};
+        var attendanceData = {};
+        var advanceData = {};
+
+        // Initialize data
+        function initData() {
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                attendanceData[emp.id] = {present: 30, late: 0, leave: 0};
+                advanceData[emp.id] = [];
             }
-        }
-        
-        function saveToLocalStorage() {
-            const data = {
-                attendance: attendanceData,
-                advances: advancesData
-            };
-            localStorage.setItem('salaryData', JSON.stringify(data));
-        }
-        
-        function changeMonth() {
-            currentMonth = document.getElementById('currentMonth').value;
-            initializeAttendance();
-            renderAdvances();
+            renderTable();
             calculateSummary();
         }
-        
-        function getDaysInMonth(monthStr) {
-            const [year, month] = monthStr.split('-').map(Number);
-            return new Date(year, month, 0).getDate();
+
+        // Update attendance
+        function updateAttendance(empId, field, value) {
+            attendanceData[empId][field] = parseInt(value) || 0;
+            calculateAll();
         }
-        
-        function initializeAttendance() {
-            const tbody = document.getElementById('attendanceBody');
-            tbody.innerHTML = '';
+
+        // Add advance
+        function addAdvance(empId) {
+            var amount = prompt('Enter advance amount (₹):');
+            var date = prompt('Enter date (DD/MM/YYYY):');
             
-            const daysInMonth = getDaysInMonth(currentMonth);
-            
-            // Initialize attendance data for the month if not exists
-            if (!attendanceData[currentMonth]) {
-                attendanceData[currentMonth] = {};
-                employees.forEach(emp => {
-                    attendanceData[currentMonth][emp.id] = {};
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const date = `${currentMonth}-${String(day).padStart(2, '0')}`;
-                        const dayOfWeek = new Date(date).getDay();
-                        // Sunday is holiday by default
-                        attendanceData[currentMonth][emp.id][day] = dayOfWeek === 0 ? 'holiday' : 'present';
-                    }
+            if (amount && date && !isNaN(amount)) {
+                advanceData[empId].push({
+                    id: Date.now(),
+                    amount: parseFloat(amount),
+                    date: date
                 });
+                calculateAll();
             }
-            
-            employees.forEach(emp => {
-                const row = document.createElement('tr');
-                const dailyRate = Math.round(emp.salary / 30);
-                
-                let cols = `
-                    <td><strong>${emp.name}</strong></td>
-                    <td>₹${emp.salary.toLocaleString()}</td>
-                    <td>₹${dailyRate.toLocaleString()}</td>
-                `;
-                
-                // Add attendance dropdowns for each day
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = `${currentMonth}-${String(day).padStart(2, '0')}`;
-                    const dayOfWeek = new Date(date).getDay();
-                    const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek];
-                    
-                    const currentStatus = attendanceData[currentMonth][emp.id][day] || 'present';
-                    
-                    cols += `
-                        <td>
-                            <div style="font-size: 10px; color: #666; margin-bottom: 2px;">${day} ${dayName}</div>
-                            <select class="attendance-select ${currentStatus}" 
-                                    onchange="updateAttendance(${emp.id}, ${day}, this.value, this)">
-                                <option value="present" ${currentStatus === 'present' ? 'selected' : ''}>P</option>
-                                <option value="late" ${currentStatus === 'late' ? 'selected' : ''}>L</option>
-                                <option value="absent" ${currentStatus === 'absent' ? 'selected' : ''}>A</option>
-                                <option value="holiday" ${currentStatus === 'holiday' ? 'selected' : ''}>H</option>
-                            </select>
-                        </td>
-                    `;
-                }
-                
-                row.innerHTML = cols;
-                tbody.appendChild(row);
+        }
+
+        // Remove advance
+        function removeAdvance(empId, advId) {
+            advanceData[empId] = advanceData[empId].filter(function(adv) {
+                return adv.id != advId;
             });
-            
-            // Update header with day numbers
-            const headerRow = document.querySelector('#attendanceTable thead tr');
-            const daysHeaders = [];
-            for (let day = 1; day <= daysInMonth; day++) {
-                daysHeaders.push(`<th style="font-size: 11px; text-align: center;">Day ${day}</th>`);
-            }
-            headerRow.innerHTML = `
-                <th>Employee</th>
-                <th>Basic Salary</th>
-                <th>Daily Rate</th>
-                ${daysHeaders.join('')}
-            `;
+            calculateAll();
         }
-        
-        function updateAttendance(empId, day, status, element) {
-            if (!attendanceData[currentMonth]) {
-                attendanceData[currentMonth] = {};
+
+        // Calculate salary for one employee
+        function calculateSalary(emp) {
+            var workingDays = parseInt(document.getElementById('workingDays').value) || 30;
+            var attendance = attendanceData[emp.id];
+            var advances = advanceData[emp.id];
+            
+            var dailyRate = emp.salary / workingDays;
+            var lateDeduction = attendance.late * (dailyRate * 0.5);
+            var leaveDeduction = attendance.leave * dailyRate;
+            var totalAdvances = 0;
+            
+            for (var i = 0; i < advances.length; i++) {
+                totalAdvances += advances[i].amount;
             }
-            if (!attendanceData[currentMonth][empId]) {
-                attendanceData[currentMonth][empId] = {};
-            }
             
-            attendanceData[currentMonth][empId][day] = status;
+            var totalDeductions = lateDeduction + leaveDeduction + totalAdvances;
+            var finalSalary = Math.max(0, emp.salary - totalDeductions);
             
-            // Update visual style
-            element.className = `attendance-select ${status}`;
-            
-            saveToLocalStorage();
-            calculateSummary();
+            return {
+                dailyRate: dailyRate.toFixed(2),
+                lateDeduction: lateDeduction.toFixed(2),
+                leaveDeduction: leaveDeduction.toFixed(2),
+                totalAdvances: totalAdvances.toFixed(2),
+                totalDeductions: totalDeductions.toFixed(2),
+                finalSalary: finalSalary.toFixed(2)
+            };
         }
-        
-        function addAdvance() {
-            const employee = prompt("Enter employee name:");
-            if (!employee) return;
-            
-            const emp = employees.find(e => e.name.toLowerCase() === employee.toLowerCase());
-            if (!emp) {
-                alert("Employee not found!");
-                return;
-            }
-            
-            const amount = parseFloat(prompt("Enter advance amount:"));
-            if (isNaN(amount) || amount <= 0) {
-                alert("Invalid amount!");
-                return;
-            }
-            
-            const date = prompt("Enter date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
-            const reason = prompt("Enter reason (optional):") || "Personal";
-            
-            if (!advancesData[currentMonth]) {
-                advancesData[currentMonth] = [];
-            }
-            
-            advancesData[currentMonth].push({
-                id: Date.now(),
-                empId: emp.id,
-                empName: emp.name,
-                amount: amount,
-                date: date,
-                reason: reason
-            });
-            
-            saveToLocalStorage();
-            renderAdvances();
-            calculateSummary();
-        }
-        
-        function deleteAdvance(id) {
-            if (confirm("Are you sure you want to delete this advance?")) {
-                advancesData[currentMonth] = advancesData[currentMonth].filter(a => a.id !== id);
-                saveToLocalStorage();
-                renderAdvances();
-                calculateSummary();
-            }
-        }
-        
-        function renderAdvances() {
-            const tbody = document.getElementById('advancesBody');
+
+        // Render table
+        function renderTable() {
+            var tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
-            const monthAdvances = advancesData[currentMonth] || [];
-            
-            if (monthAdvances.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No advances recorded for this month</td></tr>';
-                return;
-            }
-            
-            monthAdvances.forEach(advance => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${advance.empName}</td>
-                    <td>${advance.date}</td>
-                    <td>₹${advance.amount.toLocaleString()}</td>
-                    <td>${advance.reason}</td>
-                    <td><button class="delete-btn" onclick="deleteAdvance(${advance.id})">Delete</button></td>
-                `;
+
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var attendance = attendanceData[emp.id];
+                var calc = calculateSalary(emp);
+                var advances = advanceData[emp.id];
+
+                var row = document.createElement('tr');
+                
+                // Build advances HTML
+                var advancesHtml = '<button class="btn btn-blue" onclick="addAdvance(' + emp.id + ')">+ Add Advance</button><div class="advance-list">';
+                for (var j = 0; j < advances.length; j++) {
+                    var adv = advances[j];
+                    advancesHtml += '<div class="advance-item">' +
+                        '<div><strong>₹' + adv.amount + '</strong><br>' + adv.date + '</div>' +
+                        '<button class="btn btn-red" onclick="removeAdvance(' + emp.id + ',' + adv.id + ')">×</button></div>';
+                }
+                advancesHtml += '</div>';
+
+                row.innerHTML = 
+                    '<td><strong>' + emp.name + '</strong></td>' +
+                    '<td>₹' + emp.salary.toLocaleString() + '</td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.present + '" onchange="updateAttendance(' + emp.id + ',\'present\',this.value)"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.late + '" onchange="updateAttendance(' + emp.id + ',\'late\',this.value)"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.leave + '" onchange="updateAttendance(' + emp.id + ',\'leave\',this.value)"></td>' +
+                    '<td>' + advancesHtml + '</td>' +
+                    '<td class="deduction-detail">' +
+                        'Late: <span style="color:red">-₹' + calc.lateDeduction + '</span><br>' +
+                        'Leave: <span style="color:red">-₹' + calc.leaveDeduction + '</span><br>' +
+                        'Advance: <span style="color:red">-₹' + calc.totalAdvances + '</span><br>' +
+                        '<strong>Total: <span style="color:red">-₹' + calc.totalDeductions + '</span></strong>' +
+                    '</td>' +
+                    '<td class="final-salary">₹' + calc.finalSalary + '<br><small>Daily: ₹' + calc.dailyRate + '</small></td>';
+
                 tbody.appendChild(row);
-            });
+            }
         }
-        
+
+        // Calculate summary
         function calculateSummary() {
-            const tbody = document.getElementById('summaryBody');
-            tbody.innerHTML = '';
-            
-            let totalPayroll = 0;
-            let totalDeductions = 0;
-            let totalAdvancesSum = 0;
-            let totalLateDeductions = 0;
-            let totalAbsentDeductions = 0;
-            
-            const daysInMonth = getDaysInMonth(currentMonth);
-            const monthAdvances = advancesData[currentMonth] || [];
-            
-            employees.forEach(emp => {
-                const dailyRate = Math.round(emp.salary / 30);
-                const halfDayRate = Math.round(dailyRate / 2);
-                
-                let presentDays = 0;
-                let lateDays = 0;
-                let absentDays = 0;
-                let holidays = 0;
-                
-                if (attendanceData[currentMonth] && attendanceData[currentMonth][emp.id]) {
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const status = attendanceData[currentMonth][emp.id][day] || 'present';
-                        switch(status) {
-                            case 'present': presentDays++; break;
-                            case 'late': lateDays++; break;
-                            case 'absent': absentDays++; break;
-                            case 'holiday': holidays++; break;
-                        }
-                    }
-                } else {
-                    presentDays = daysInMonth;
-                }
-                
-                const workingDays = daysInMonth - holidays;
-                const lateDeduction = lateDays * halfDayRate;
-                const absentDeduction = absentDays * dailyRate;
-                
-                const empAdvances = monthAdvances
-                    .filter(a => a.empId === emp.id)
-                    .reduce((sum, a) => sum + a.amount, 0);
-                
-                const netSalary = emp.salary - lateDeduction - absentDeduction - empAdvances;
-                
-                totalPayroll += netSalary;
-                totalDeductions += (lateDeduction + absentDeduction + empAdvances);
-                totalAdvancesSum += empAdvances;
-                totalLateDeductions += lateDeduction;
-                totalAbsentDeductions += absentDeduction;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${emp.name}</strong></td>
-                    <td>₹${emp.salary.toLocaleString()}</td>
-                    <td>${workingDays}</td>
-                    <td><span class="status-badge present">${presentDays}</span></td>
-                    <td><span class="status-badge late">${lateDays}</span></td>
-                    <td><span class="status-badge absent">${absentDays}</span></td>
-                    <td>₹${lateDeduction.toLocaleString()}</td>
-                    <td>₹${absentDeduction.toLocaleString()}</td>
-                    <td>₹${empAdvances.toLocaleString()}</td>
-                    <td style="font-weight: bold; color: ${netSalary < 0 ? '#f56565' : '#48bb78'}">
-                        ₹${netSalary.toLocaleString()}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            // Update summary cards
-            document.getElementById('totalPayroll').textContent = `₹${totalPayroll.toLocaleString()}`;
-            document.getElementById('totalDeductions').textContent = `₹${totalDeductions.toLocaleString()}`;
-            document.getElementById('totalAdvances').textContent = `₹${totalAdvancesSum.toLocaleString()}`;
-            document.getElementById('totalLate').textContent = `₹${totalLateDeductions.toLocaleString()}`;
-            document.getElementById('totalAbsent').textContent = `₹${totalAbsentDeductions.toLocaleString()}`;
-        }
-        
-        function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked button
-            event.target.classList.add('active');
-            
-            // Recalculate summary when showing summary tab
-            if (tabName === 'summary') {
-                calculateSummary();
+            var totalBase = 0;
+            var totalDeductions = 0;
+            var totalFinal = 0;
+
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var calc = calculateSalary(emp);
+                totalBase += emp.salary;
+                totalDeductions += parseFloat(calc.totalDeductions);
+                totalFinal += parseFloat(calc.finalSalary);
             }
+
+            document.getElementById('summaryGrid').innerHTML = 
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#007bff">₹' + totalBase.toLocaleString() + '</div>' +
+                    '<div>Total Base Salary</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#dc3545">₹' + Math.round(totalDeductions).toLocaleString() + '</div>' +
+                    '<div>Total Deductions</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#28a745">₹' + Math.round(totalFinal).toLocaleString() + '</div>' +
+                    '<div>Total Final Salary</div>' +
+                '</div>' +
+                '<div class="summary-card">' +
+                    '<div class="summary-value" style="color:#6f42c1">' + employees.length + '</div>' +
+                    '<div>Total Employees</div>' +
+                '</div>';
         }
-        
-        function exportData() {
-            const data = {
-                attendance: attendanceData,
-                advances: advancesData,
-                employees: employees,
-                exportDate: new Date().toISOString()
-            };
+
+        // Calculate all
+        function calculateAll() {
+            renderTable();
+            calculateSummary();
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            var csv = 'Employee Name,Base Salary,Present Days,Late Days,Leave Days,Late Deduction,Leave Deduction,Total Advances,Total Deductions,Final Salary\n';
             
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `salary_data_${currentMonth}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        function importData() {
-            document.getElementById('importFile').click();
-        }
-        
-        function handleImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            for (var i = 0; i < employees.length; i++) {
+                var emp = employees[i];
+                var attendance = attendanceData[emp.id];
+                var calc = calculateSalary(emp);
+                
+                csv += emp.name + ',' + 
+                       emp.salary + ',' + 
+                       attendance.present + ',' + 
+                       attendance.late + ',' + 
+                       attendance.leave + ',' + 
+                       calc.lateDeduction + ',' + 
+                       calc.leaveDeduction + ',' + 
+                       calc.totalAdvances + ',' + 
+                       calc.totalDeductions + ',' + 
+                       calc.finalSalary + '\n';
+            }
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.attendance) attendanceData = data.attendance;
-                    if (data.advances) advancesData = data.advances;
-                    
-                    saveToLocalStorage();
-                    initializeAttendance();
-                    renderAdvances();
-                    calculateSummary();
-                    
-                    alert('Data imported successfully!');
-                } catch (error) {
-                    alert('Error importing data: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
+            var blob = new Blob([csv], {type: 'text/csv'});
+            var url = window.URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'salary_report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
         }
+
+        // Initialize when page loads
+        window.onload = function() {
+            initData();
+        };
     </script>
 </body>
 </html>
