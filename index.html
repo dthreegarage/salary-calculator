@@ -33,17 +33,21 @@
             margin-bottom: 30px;
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         h1 {
             color: #333;
             font-size: 28px;
+            margin: 0;
         }
         
         .controls {
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         label {
@@ -60,19 +64,23 @@
         }
         
         input[type="text"] {
-            padding: 6px;
+            padding: 6px 8px;
             border: 1px solid #ddd;
             border-radius: 3px;
             background: transparent;
             font-weight: bold;
+            min-width: 120px;
+            font-size: 14px;
         }
         
         .editable-salary {
-            width: 100px;
+            width: 90px;
             text-align: right;
-            padding: 4px;
+            padding: 6px 8px;
             border: 1px solid #ddd;
             border-radius: 3px;
+            font-size: 14px;
+            font-weight: bold;
         }
         
         .btn {
@@ -102,15 +110,26 @@
         
         th, td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 15px 12px;
             text-align: left;
             vertical-align: top;
         }
         
         th {
-            background-color: #f8f9fa;
-            font-weight: bold;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: 600;
             color: #495057;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        td {
+            text-align: center;
+        }
+        
+        td:first-child,
+        td:nth-child(8) {
+            text-align: left;
         }
         
         tr:nth-child(even) {
@@ -150,42 +169,74 @@
             line-height: 1.4;
         }
         
-        .final-salary {
-            font-size: 18px;
-            font-weight: bold;
-            color: #28a745;
-        }
-        
         .employee-actions {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .final-salary {
+            font-size: 16px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+        }
+        
+        .deduction-detail {
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .advance-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             align-items: center;
         }
         
         .add-employee-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
         }
         
         .add-employee-form {
             display: flex;
-            gap: 15px;
-            align-items: center;
+            gap: 20px;
+            align-items: end;
             flex-wrap: wrap;
+            justify-content: flex-start;
         }
         
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            font-size: 14px;
+            color: #495057;
+            font-weight: 600;
         }
         
         .form-group input {
-            padding: 8px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            padding: 10px 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
         }
         
         .summary {
@@ -310,34 +361,55 @@
         var advanceData = {};
         var nextEmployeeId = 1;
 
-        // Data persistence functions (In production, replace with localStorage)
+        // Data persistence functions
         function saveData() {
-            // In a real environment, you would use localStorage here:
-            // localStorage.setItem('salaryCalculatorData', JSON.stringify({
-            //     employees: employees,
-            //     attendanceData: attendanceData,
-            //     advanceData: advanceData,
-            //     nextEmployeeId: nextEmployeeId
-            // }));
-            
-            showSaveIndicator();
+            try {
+                var dataToSave = {
+                    employees: employees,
+                    attendanceData: attendanceData,
+                    advanceData: advanceData,
+                    nextEmployeeId: nextEmployeeId,
+                    workingDays: document.getElementById('workingDays').value
+                };
+                
+                // For this environment, we'll use a global variable to simulate localStorage
+                window.salaryCalculatorData = JSON.stringify(dataToSave);
+                
+                // In a real browser environment, this would be:
+                // localStorage.setItem('salaryCalculatorData', JSON.stringify(dataToSave));
+                
+                showSaveIndicator();
+            } catch (e) {
+                console.log('Error saving data:', e);
+            }
         }
 
         function loadData() {
-            // In a real environment, you would use localStorage here:
-            // var savedData = localStorage.getItem('salaryCalculatorData');
-            // if (savedData) {
-            //     var data = JSON.parse(savedData);
-            //     employees = data.employees || [];
-            //     attendanceData = data.attendanceData || {};
-            //     advanceData = data.advanceData || {};
-            //     nextEmployeeId = data.nextEmployeeId || 1;
-            // } else {
-            //     initDefaultData();
-            // }
-            
-            // For demo purposes, initialize with default data
-            initDefaultData();
+            try {
+                // For this environment, check global variable first
+                var savedData = window.salaryCalculatorData;
+                
+                // In a real browser environment, this would be:
+                // var savedData = localStorage.getItem('salaryCalculatorData');
+                
+                if (savedData) {
+                    var data = JSON.parse(savedData);
+                    employees = data.employees || [];
+                    attendanceData = data.attendanceData || {};
+                    advanceData = data.advanceData || {};
+                    nextEmployeeId = data.nextEmployeeId || 1;
+                    
+                    // Restore working days if saved
+                    if (data.workingDays) {
+                        document.getElementById('workingDays').value = data.workingDays;
+                    }
+                } else {
+                    initDefaultData();
+                }
+            } catch (e) {
+                console.log('Error loading data:', e);
+                initDefaultData();
+            }
         }
 
         function initDefaultData() {
@@ -510,19 +582,19 @@
 
                 var row = document.createElement('tr');
                 
-                // Build advances HTML
-                var advancesHtml = '<button class="btn btn-blue" onclick="addAdvance(' + emp.id + ')">+ Add Advance</button><div class="advance-list">';
+                // Build advances HTML with better alignment
+                var advancesHtml = '<div class="advance-controls"><button class="btn btn-blue" onclick="addAdvance(' + emp.id + ')">+ Add Advance</button><div class="advance-list">';
                 for (var j = 0; j < advances.length; j++) {
                     var adv = advances[j];
                     advancesHtml += '<div class="advance-item">' +
                         '<div><strong>₹' + adv.amount + '</strong><br>' + adv.date + '</div>' +
                         '<button class="btn btn-red" onclick="removeAdvance(' + emp.id + ',' + adv.id + ')">×</button></div>';
                 }
-                advancesHtml += '</div>';
+                advancesHtml += '</div></div>';
 
                 row.innerHTML = 
                     '<td><input type="text" value="' + emp.name + '" onchange="updateEmployeeName(' + emp.id + ', this.value)" onblur="updateEmployeeName(' + emp.id + ', this.value)"></td>' +
-                    '<td>₹<input type="number" class="editable-salary" value="' + emp.salary + '" onchange="updateEmployeeSalary(' + emp.id + ', this.value)" min="0"></td>' +
+                    '<td><div style="display: flex; align-items: center; justify-content: center;">₹<input type="number" class="editable-salary" value="' + emp.salary + '" onchange="updateEmployeeSalary(' + emp.id + ', this.value)" min="0"></div></td>' +
                     '<td><input type="number" class="input-small" value="' + attendance.present + '" onchange="updateAttendance(' + emp.id + ',\'present\',this.value)" min="0"></td>' +
                     '<td><input type="number" class="input-small" value="' + attendance.late + '" onchange="updateAttendance(' + emp.id + ',\'late\',this.value)" min="0"></td>' +
                     '<td><input type="number" class="input-small" value="' + attendance.leave + '" onchange="updateAttendance(' + emp.id + ',\'leave\',this.value)" min="0"></td>' +
@@ -533,8 +605,8 @@
                         'Advance: <span style="color:red">-₹' + calc.totalAdvances + '</span><br>' +
                         '<strong>Total: <span style="color:red">-₹' + calc.totalDeductions + '</span></strong>' +
                     '</td>' +
-                    '<td class="final-salary">₹' + calc.finalSalary + '<br><small>Daily: ₹' + calc.dailyRate + '</small></td>' +
-                    '<td class="employee-actions"><button class="btn btn-red" onclick="removeEmployee(' + emp.id + ')">🗑️ Remove</button></td>';
+                    '<td class="final-salary">₹' + parseFloat(calc.finalSalary).toLocaleString() + '<br><small style="color:#6c757d;">Daily: ₹' + calc.dailyRate + '</small></td>' +
+                    '<td class="employee-actions"><button class="btn btn-red" onclick="removeEmployee(' + emp.id + ')" title="Remove Employee">🗑️</button></td>';
 
                 tbody.appendChild(row);
             }
