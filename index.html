@@ -18,7 +18,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -59,6 +59,22 @@
             width: 80px;
         }
         
+        input[type="text"] {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: transparent;
+            font-weight: bold;
+        }
+        
+        .editable-salary {
+            width: 100px;
+            text-align: right;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
         .btn {
             padding: 10px 20px;
             border: none;
@@ -66,6 +82,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
+            white-space: nowrap;
         }
         
         .btn-blue { background: #007bff; color: white; }
@@ -74,6 +91,8 @@
         .btn-green:hover { background: #1e7e34; }
         .btn-red { background: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
         .btn-red:hover { background: #c82333; }
+        .btn-orange { background: #fd7e14; color: white; }
+        .btn-orange:hover { background: #e8590c; }
         
         table {
             width: 100%;
@@ -85,6 +104,7 @@
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
+            vertical-align: top;
         }
         
         th {
@@ -136,6 +156,38 @@
             color: #28a745;
         }
         
+        .employee-actions {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .add-employee-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .add-employee-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group input {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        
         .summary {
             background: #e7f3ff;
             padding: 20px;
@@ -170,9 +222,24 @@
             border-radius: 10px;
             margin-top: 20px;
         }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div class="save-indicator" id="saveIndicator">✓ Data Saved</div>
+    
     <div class="container">
         <div class="header">
             <h1>Employee Salary Calculator</h1>
@@ -180,6 +247,22 @@
                 <label>Working Days:</label>
                 <input type="number" id="workingDays" value="30" min="1" max="31" onchange="calculateAll()">
                 <button class="btn btn-green" onclick="exportCSV()">📊 Export CSV</button>
+                <button class="btn btn-orange" onclick="clearAllData()">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <div class="add-employee-section">
+            <h3 style="margin-bottom: 15px;">Add New Employee</h3>
+            <div class="add-employee-form">
+                <div class="form-group">
+                    <label>Employee Name</label>
+                    <input type="text" id="newEmpName" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <label>Base Salary (₹)</label>
+                    <input type="number" id="newEmpSalary" placeholder="Enter salary" min="0">
+                </div>
+                <button class="btn btn-green" onclick="addEmployee()">➕ Add Employee</button>
             </div>
         </div>
 
@@ -194,6 +277,7 @@
                     <th>Advances</th>
                     <th>Deductions</th>
                     <th>Final Salary</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -220,33 +304,143 @@
     </div>
 
     <script>
-        // Employee data
-        var employees = [
-            {id: 1, name: 'Ajit', salary: 18000},
-            {id: 2, name: 'Sunil', salary: 10000},
-            {id: 3, name: 'Om Prakash', salary: 10000},
-            {id: 4, name: 'Sanjeev', salary: 12000},
-            {id: 5, name: 'Aman', salary: 18000}
-        ];
-
-        // Data storage
+        // Global data storage
+        var employees = [];
         var attendanceData = {};
         var advanceData = {};
+        var nextEmployeeId = 1;
 
-        // Initialize data
-        function initData() {
+        // Data persistence functions (In production, replace with localStorage)
+        function saveData() {
+            // In a real environment, you would use localStorage here:
+            // localStorage.setItem('salaryCalculatorData', JSON.stringify({
+            //     employees: employees,
+            //     attendanceData: attendanceData,
+            //     advanceData: advanceData,
+            //     nextEmployeeId: nextEmployeeId
+            // }));
+            
+            showSaveIndicator();
+        }
+
+        function loadData() {
+            // In a real environment, you would use localStorage here:
+            // var savedData = localStorage.getItem('salaryCalculatorData');
+            // if (savedData) {
+            //     var data = JSON.parse(savedData);
+            //     employees = data.employees || [];
+            //     attendanceData = data.attendanceData || {};
+            //     advanceData = data.advanceData || {};
+            //     nextEmployeeId = data.nextEmployeeId || 1;
+            // } else {
+            //     initDefaultData();
+            // }
+            
+            // For demo purposes, initialize with default data
+            initDefaultData();
+        }
+
+        function initDefaultData() {
+            employees = [
+                {id: 1, name: 'Ajit', salary: 18000},
+                {id: 2, name: 'Sunil', salary: 10000},
+                {id: 3, name: 'Om Prakash', salary: 10000},
+                {id: 4, name: 'Sanjeev', salary: 12000},
+                {id: 5, name: 'Aman', salary: 18000}
+            ];
+            nextEmployeeId = 6;
+            
             for (var i = 0; i < employees.length; i++) {
                 var emp = employees[i];
                 attendanceData[emp.id] = {present: 30, late: 0, leave: 0};
                 advanceData[emp.id] = [];
             }
-            renderTable();
-            calculateSummary();
+        }
+
+        function showSaveIndicator() {
+            var indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(function() {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                employees = [];
+                attendanceData = {};
+                advanceData = {};
+                nextEmployeeId = 1;
+                saveData();
+                renderTable();
+                calculateSummary();
+            }
+        }
+
+        // Employee management functions
+        function addEmployee() {
+            var name = document.getElementById('newEmpName').value.trim();
+            var salary = parseInt(document.getElementById('newEmpSalary').value) || 0;
+            
+            if (!name) {
+                alert('Please enter employee name');
+                return;
+            }
+            
+            if (salary <= 0) {
+                alert('Please enter a valid salary');
+                return;
+            }
+            
+            var newEmployee = {
+                id: nextEmployeeId++,
+                name: name,
+                salary: salary
+            };
+            
+            employees.push(newEmployee);
+            attendanceData[newEmployee.id] = {present: 30, late: 0, leave: 0};
+            advanceData[newEmployee.id] = [];
+            
+            // Clear form
+            document.getElementById('newEmpName').value = '';
+            document.getElementById('newEmpSalary').value = '';
+            
+            saveData();
+            calculateAll();
+        }
+
+        function removeEmployee(empId) {
+            if (confirm('Are you sure you want to remove this employee?')) {
+                employees = employees.filter(function(emp) { return emp.id !== empId; });
+                delete attendanceData[empId];
+                delete advanceData[empId];
+                saveData();
+                calculateAll();
+            }
+        }
+
+        function updateEmployeeName(empId, newName) {
+            var employee = employees.find(function(emp) { return emp.id === empId; });
+            if (employee && newName.trim()) {
+                employee.name = newName.trim();
+                saveData();
+            }
+        }
+
+        function updateEmployeeSalary(empId, newSalary) {
+            var employee = employees.find(function(emp) { return emp.id === empId; });
+            if (employee && newSalary > 0) {
+                employee.salary = parseInt(newSalary);
+                saveData();
+                calculateAll();
+            }
         }
 
         // Update attendance
         function updateAttendance(empId, field, value) {
             attendanceData[empId][field] = parseInt(value) || 0;
+            saveData();
             calculateAll();
         }
 
@@ -261,6 +455,7 @@
                     amount: parseFloat(amount),
                     date: date
                 });
+                saveData();
                 calculateAll();
             }
         }
@@ -270,14 +465,15 @@
             advanceData[empId] = advanceData[empId].filter(function(adv) {
                 return adv.id != advId;
             });
+            saveData();
             calculateAll();
         }
 
         // Calculate salary for one employee
         function calculateSalary(emp) {
             var workingDays = parseInt(document.getElementById('workingDays').value) || 30;
-            var attendance = attendanceData[emp.id];
-            var advances = advanceData[emp.id];
+            var attendance = attendanceData[emp.id] || {present: 30, late: 0, leave: 0};
+            var advances = advanceData[emp.id] || [];
             
             var dailyRate = emp.salary / workingDays;
             var lateDeduction = attendance.late * (dailyRate * 0.5);
@@ -308,9 +504,9 @@
 
             for (var i = 0; i < employees.length; i++) {
                 var emp = employees[i];
-                var attendance = attendanceData[emp.id];
+                var attendance = attendanceData[emp.id] || {present: 30, late: 0, leave: 0};
                 var calc = calculateSalary(emp);
-                var advances = advanceData[emp.id];
+                var advances = advanceData[emp.id] || [];
 
                 var row = document.createElement('tr');
                 
@@ -325,11 +521,11 @@
                 advancesHtml += '</div>';
 
                 row.innerHTML = 
-                    '<td><strong>' + emp.name + '</strong></td>' +
-                    '<td>₹' + emp.salary.toLocaleString() + '</td>' +
-                    '<td><input type="number" class="input-small" value="' + attendance.present + '" onchange="updateAttendance(' + emp.id + ',\'present\',this.value)"></td>' +
-                    '<td><input type="number" class="input-small" value="' + attendance.late + '" onchange="updateAttendance(' + emp.id + ',\'late\',this.value)"></td>' +
-                    '<td><input type="number" class="input-small" value="' + attendance.leave + '" onchange="updateAttendance(' + emp.id + ',\'leave\',this.value)"></td>' +
+                    '<td><input type="text" value="' + emp.name + '" onchange="updateEmployeeName(' + emp.id + ', this.value)" onblur="updateEmployeeName(' + emp.id + ', this.value)"></td>' +
+                    '<td>₹<input type="number" class="editable-salary" value="' + emp.salary + '" onchange="updateEmployeeSalary(' + emp.id + ', this.value)" min="0"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.present + '" onchange="updateAttendance(' + emp.id + ',\'present\',this.value)" min="0"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.late + '" onchange="updateAttendance(' + emp.id + ',\'late\',this.value)" min="0"></td>' +
+                    '<td><input type="number" class="input-small" value="' + attendance.leave + '" onchange="updateAttendance(' + emp.id + ',\'leave\',this.value)" min="0"></td>' +
                     '<td>' + advancesHtml + '</td>' +
                     '<td class="deduction-detail">' +
                         'Late: <span style="color:red">-₹' + calc.lateDeduction + '</span><br>' +
@@ -337,7 +533,8 @@
                         'Advance: <span style="color:red">-₹' + calc.totalAdvances + '</span><br>' +
                         '<strong>Total: <span style="color:red">-₹' + calc.totalDeductions + '</span></strong>' +
                     '</td>' +
-                    '<td class="final-salary">₹' + calc.finalSalary + '<br><small>Daily: ₹' + calc.dailyRate + '</small></td>';
+                    '<td class="final-salary">₹' + calc.finalSalary + '<br><small>Daily: ₹' + calc.dailyRate + '</small></td>' +
+                    '<td class="employee-actions"><button class="btn btn-red" onclick="removeEmployee(' + emp.id + ')">🗑️ Remove</button></td>';
 
                 tbody.appendChild(row);
             }
@@ -388,7 +585,7 @@
             
             for (var i = 0; i < employees.length; i++) {
                 var emp = employees[i];
-                var attendance = attendanceData[emp.id];
+                var attendance = attendanceData[emp.id] || {present: 30, late: 0, leave: 0};
                 var calc = calculateSalary(emp);
                 
                 csv += emp.name + ',' + 
@@ -407,7 +604,7 @@
             var url = window.URL.createObjectURL(blob);
             var link = document.createElement('a');
             link.href = url;
-            link.download = 'salary_report.csv';
+            link.download = 'salary_report_' + new Date().toISOString().split('T')[0] + '.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -416,8 +613,19 @@
 
         // Initialize when page loads
         window.onload = function() {
-            initData();
+            loadData();
+            calculateAll();
         };
+
+        // Auto-save when working days change
+        document.addEventListener('DOMContentLoaded', function() {
+            var workingDaysInput = document.getElementById('workingDays');
+            if (workingDaysInput) {
+                workingDaysInput.addEventListener('change', function() {
+                    saveData();
+                });
+            }
+        });
     </script>
 </body>
 </html>
