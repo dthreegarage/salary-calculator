@@ -372,25 +372,60 @@
                     workingDays: document.getElementById('workingDays').value
                 };
                 
-                // For this environment, we'll use a global variable to simulate localStorage
-                window.salaryCalculatorData = JSON.stringify(dataToSave);
-                
-                // In a real browser environment, this would be:
-                // localStorage.setItem('salaryCalculatorData', JSON.stringify(dataToSave));
+                // Try localStorage first (works in real browsers)
+                if (typeof(Storage) !== "undefined" && window.localStorage) {
+                    localStorage.setItem('salaryCalculatorData', JSON.stringify(dataToSave));
+                } else {
+                    // Fallback: use cookies for persistence
+                    document.cookie = "salaryCalculatorData=" + encodeURIComponent(JSON.stringify(dataToSave)) + "; expires=Fri, 31 Dec 2025 23:59:59 GMT; path=/";
+                }
                 
                 showSaveIndicator();
             } catch (e) {
                 console.log('Error saving data:', e);
+                // Last resort: try to use a hidden textarea to maintain data
+                var hiddenData = document.getElementById('hiddenData');
+                if (!hiddenData) {
+                    hiddenData = document.createElement('textarea');
+                    hiddenData.id = 'hiddenData';
+                    hiddenData.style.display = 'none';
+                    document.body.appendChild(hiddenData);
+                }
+                hiddenData.value = JSON.stringify(dataToSave);
             }
         }
 
         function loadData() {
             try {
-                // For this environment, check global variable first
-                var savedData = window.salaryCalculatorData;
+                var savedData = null;
                 
-                // In a real browser environment, this would be:
-                // var savedData = localStorage.getItem('salaryCalculatorData');
+                // Try localStorage first
+                if (typeof(Storage) !== "undefined" && window.localStorage) {
+                    savedData = localStorage.getItem('salaryCalculatorData');
+                } else {
+                    // Fallback: try to read from cookies
+                    var name = "salaryCalculatorData=";
+                    var decodedCookie = decodeURIComponent(document.cookie);
+                    var ca = decodedCookie.split(';');
+                    for(var i = 0; i < ca.length; i++) {
+                        var c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            savedData = c.substring(name.length, c.length);
+                            break;
+                        }
+                    }
+                    
+                    // Last resort: check hidden textarea
+                    if (!savedData) {
+                        var hiddenData = document.getElementById('hiddenData');
+                        if (hiddenData && hiddenData.value) {
+                            savedData = hiddenData.value;
+                        }
+                    }
+                }
                 
                 if (savedData) {
                     var data = JSON.parse(savedData);
