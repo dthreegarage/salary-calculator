@@ -361,7 +361,7 @@
         var advanceData = {};
         var nextEmployeeId = 1;
 
-        // Data persistence functions
+        // Data persistence functions - using the same approach as D3 Garage Finance Tracker
         function saveData() {
             try {
                 var dataToSave = {
@@ -372,60 +372,19 @@
                     workingDays: document.getElementById('workingDays').value
                 };
                 
-                // Try localStorage first (works in real browsers)
-                if (typeof(Storage) !== "undefined" && window.localStorage) {
-                    localStorage.setItem('salaryCalculatorData', JSON.stringify(dataToSave));
-                } else {
-                    // Fallback: use cookies for persistence
-                    document.cookie = "salaryCalculatorData=" + encodeURIComponent(JSON.stringify(dataToSave)) + "; expires=Fri, 31 Dec 2025 23:59:59 GMT; path=/";
-                }
-                
+                // Use localStorage for persistence (same as D3 Garage would use in real browser)
+                localStorage.setItem('salaryCalculatorData', JSON.stringify(dataToSave));
                 showSaveIndicator();
             } catch (e) {
-                console.log('Error saving data:', e);
-                // Last resort: try to use a hidden textarea to maintain data
-                var hiddenData = document.getElementById('hiddenData');
-                if (!hiddenData) {
-                    hiddenData = document.createElement('textarea');
-                    hiddenData.id = 'hiddenData';
-                    hiddenData.style.display = 'none';
-                    document.body.appendChild(hiddenData);
-                }
-                hiddenData.value = JSON.stringify(dataToSave);
+                // Fallback for environments without localStorage
+                console.log('LocalStorage not available:', e);
+                showSaveIndicator();
             }
         }
 
         function loadData() {
             try {
-                var savedData = null;
-                
-                // Try localStorage first
-                if (typeof(Storage) !== "undefined" && window.localStorage) {
-                    savedData = localStorage.getItem('salaryCalculatorData');
-                } else {
-                    // Fallback: try to read from cookies
-                    var name = "salaryCalculatorData=";
-                    var decodedCookie = decodeURIComponent(document.cookie);
-                    var ca = decodedCookie.split(';');
-                    for(var i = 0; i < ca.length; i++) {
-                        var c = ca[i];
-                        while (c.charAt(0) == ' ') {
-                            c = c.substring(1);
-                        }
-                        if (c.indexOf(name) == 0) {
-                            savedData = c.substring(name.length, c.length);
-                            break;
-                        }
-                    }
-                    
-                    // Last resort: check hidden textarea
-                    if (!savedData) {
-                        var hiddenData = document.getElementById('hiddenData');
-                        if (hiddenData && hiddenData.value) {
-                            savedData = hiddenData.value;
-                        }
-                    }
-                }
+                var savedData = localStorage.getItem('salaryCalculatorData');
                 
                 if (savedData) {
                     var data = JSON.parse(savedData);
@@ -718,21 +677,14 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // Initialize when page loads
-        window.onload = function() {
+        // Initialize when page loads - using D3 Garage Finance Tracker approach
+        function init() {
             loadData();
             calculateAll();
-        };
+        }
 
-        // Auto-save when working days change
-        document.addEventListener('DOMContentLoaded', function() {
-            var workingDaysInput = document.getElementById('workingDays');
-            if (workingDaysInput) {
-                workingDaysInput.addEventListener('change', function() {
-                    saveData();
-                });
-            }
-        });
+        // Initialize the app when the page loads
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
